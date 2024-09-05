@@ -1,45 +1,51 @@
 version: '3.8'
 
 services:
+  # Laravel Application
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: task_management_app
-    restart: unless-stopped
+    container_name: laravel_app
     working_dir: /var/www
     volumes:
       - .:/var/www
     ports:
-      - "8000:80"
-    networks:
-      - task_management_net
+      - "8080:80"  # Change the host port to 8080
     depends_on:
-      - db
-
-  db:
-    image: mysql:5.7
-    container_name: task_management_db
-    restart: unless-stopped
-    environment:
-      MYSQL_DATABASE: task_management_db
-      MYSQL_USER: your_db_user
-      MYSQL_PASSWORD: your_db_password
-      MYSQL_ROOT_PASSWORD: root_password
-    ports:
-      - "3306:3306"
+      - mysql
     networks:
-      - task_management_net
+      - laravel
 
-  php-report:
+  # MySQL Service
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: admin@123
+      MYSQL_DATABASE: task_management_db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin@123
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"  # Map host port 3307 to container port 3306
+    networks:
+      - laravel
+
+  # Core PHP Service for CSV Reporting
+  corephp:
     image: php:8.1-cli
-    container_name: php_report
+    container_name: core_php
     volumes:
       - .:/var/www
+    entrypoint: ["php", "/var/www/generate_report.php"]
     networks:
-      - task_management_net
-    entrypoint: ["php", "/var/www/report.php"]
+      - laravel
 
 networks:
-  task_management_net:
+  laravel:
     driver: bridge
+
+volumes:
+  mysql_data:

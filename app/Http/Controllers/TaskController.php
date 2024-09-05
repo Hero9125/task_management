@@ -75,6 +75,7 @@ class TaskController extends Controller
                 $task->update([
                     'title' => $request->input('title'),
                     'due_date' => $request->input('due_date'),
+                    'description' => $request->input('description'),
                 ]);
 
                 return redirect()->route('tasks.index')->with('success', 'Task updated successfully.');
